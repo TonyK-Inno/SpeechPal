@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Idea
+
+A mobile application named "Voice to Text: Communication Assistant" designed to facilitate real-time communication for deaf or hard-of-hearing individuals. It instantly transcribes spoken words into large, easy-to-read text displayed on the screen.
+
+## Core Functionality
+- Real-time speech transcription to text.
+- Conversation history storage and retrieval.
+- Customizable display settings (font size, theme).
+- Screen protection mode to prevent accidental interactions.
+
+## File References
+- Main application entry: [App.tsx](src/app/App.tsx)
+- Global configuration: [app.json](app.json)

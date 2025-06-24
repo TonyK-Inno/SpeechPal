@@ -1,0 +1,46 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Architecture Overview
+
+The application adopts a **simplified "feature-sliced" or "domain-driven" architecture** for modularity and maintainability. Code is organized by functional areas, ensuring clear separation of UI, business logic, and data handling.
+
+## Key Architectural Layers
+
+### 1. `app/`
+- Contains global configurations, the root application component ([App.tsx](src/app/App.tsx)), and main navigation setup using Expo Router. The primary navigatiined in [app/_layout.tsx](src/app/_layout.tsx).
+
+### 2. `features/`
+- Houses independent functional modules (domains).
+- Each feature (e.g., `transcription/`, `history/`, `settings/`) is a self-contained unit.
+- **Subdirectories within a feature:**
+    - `components/`: UI components specific to the feature.
+    - `hooks/`: React hooks encapsulating feature-specific business logic and state management. These interact with `api/` and `storage/`.
+    - `api/`: Interactions with external APIs (e.g., [Google Cloud Speo-Teck.mdc)).
+    - `storage/`: Local data persistence logic (e.g., using [MMKV](tech-stack.mdc) or [Expo SQLite](tech-stack.mdc)).
+    - `screens/`: Top-level React Native components that compose the UI for a particular screen, using hooks and feature-specific components. For Expo Router, these often double as route components (e.g., [features/transcription/screens/index.tsx](src/features/transcription/screens/index.tsx)).
+    - `types/`: in feature.
+
+### 3. `shared/`
+- Contains reusable components, general utility functionsts, common types, and shared styles/themes used across multiple features.
+- Examples: [shared/components/](src/shared/components/), [shared/utils/](src/shared/utils/), [shared/styles/theme.ts](src/shared/styles/theme.ts).
+
+### 4. `config/`
+- Stores applicatiation files, such as API keys ([config/index.ts](src/config/index.ts)).
+
+## Navigation
+- Utilizes **Expo Router** for file-system based navigation. This simplifies routing by automatically generating routes from files in the `app/` directory.
+- Tin navigation laare defined implicitly by tthin `app/` and explicitlyt.tsx](src/app/_layo typically be organiznscriptionScreen - de `/history` (HistoryScreen)
+    - `/history/[id]` (ConversationDetailScreen)
+    - `/settings` (SettingsScreen)
+
+## File References
+- Project root: [src/](src/)
+- Entry point: [src/app/App.tsx](src/app/App.tsx)
+- Main navigation layout: [src/app/_layout.tsx](src/app/_layout.tsx)
+- Transcription feature: [src/features/transcription/](src/features/transcription/)
+- History feature: [src/features/history/](src/features/history/)
+- Settings feature: [src/features/settings/](src/features/settings/)
+- Shared utilities: [src/shared/utils/](src/shared/utils/)

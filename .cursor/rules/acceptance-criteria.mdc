@@ -1,0 +1,46 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Acceptance Criteria
+
+This document outlines the key functional requirements for the "Voice to Text: Communication Assistant" application.
+
+## General Requirements
+- The app must be developed for mobile (iOS/Android) using [React Native](mdc:tech-stack.mdc).
+- The UI must be highly readable and high-contrast, prioritizing large fonts.
+- The app must operate quickly with minimal transcription delays.
+
+## 1. Main "Transcription" Screen
+- **AC1.1 (Auto-start New Conversation):** Upon each launch, a new, empty conversation automatically opens, ready for recording. This screen will be the default `/`) in [Expo Router](mdc:tech-stack.mdc).
+- **AC1.2 (Text Display):** Features a large, easily readable text area that auto-scrolls with new transcribed speech.
+- **AC1.3 (Record on Press):** A single, prominent button starts voice recording.
+- **AC1.4 (Stop Recording):** Pressing the same button again stops recording.
+- **AC1.5 (Visual Recording Indication):** The button visually changes and provides haptic feedback during recording.
+- **AC1.6 (Clear Text):** A separate button to clear current text or start a new conversation.
+- **AC1.7 (Manual Save Conversation):** A separate button allows the user to manually save the current conversation. When pressed, the user is prompted to enter a name for the conversation. The conversation is saved with the provided name and the current date/time. The conversation is not cleared after saving.
+
+## 2. "Conversation History" Screen
+- **AC2.1 (Access History):** A navigation element provides access to the list of saved conversations. This screen is accessible via the `/history` route in [Expo Router](mdc:tech-stack.mdc).
+- **AC2.2 (Conversation List):** Displays a list of manually saved conversations with their name and date/time (e.g., "Meeting with John - June 24, 2025, 14:30").
+- **AC2.3 (Manual Save Only):** Only conversations saved via the manual save button are shown in history. Conversations are not auto-saved on clear, new, or exit.
+- **AC2.4 (View Conversation):** Tapping an item opens a screen with the full conversation text. This screen will use a dynamic route, e.g., `/history/[id]`, in [Expo Router](mdc:tech-stack.mdc).
+- **AC2.5 (History Limit):** Stores conversations for the last 7 days.
+
+## 3. "Settings" Screen
+- **AC3.1 (Font Size Adjustment):** User can change font size on the main screen (slider/presets).
+- **AC3.2 (Theme Toggle):** User can switch between light and dark themes using [MMKV](mdc:tech-stack.mdc).
+- **AC3.3 (Transcription Language Selection):** User can select the language for speech recognition. This screen will be accessible via the `/settings` route in [Expo Router](mdc:tech-stack.mdc).
+
+## 4. "Screen Protection from Accidental Taps" Feature
+- **AC4.1 (Protection Activation Button):** A separate button on the main screen activates protection.
+- **AC4.2 (Protection Activation Condition):** Button is available ONLY when recording is STOPPED.
+- **AC4.3 (Action on Activation):** Pressing it immediately activates protection. If recording, it first stops recording, then activates.
+- **AC4.4 (Visual Protection Indication):** A noticeable border appears around the screen; no dimming.
+- **AC4.5 (Functionality in Protection Mode):** Text scrolling is locked, and all buttons (except unlock) are unresponsive. Transcription continues if active before lock.
+- **AC4.6 (Protection Deactivation):** A separate unlock button (e.g., open lock icon), positioned to be easily difficult to press accidentally (e.g., long press or specific corner). No gestures are used.
+
+## File References
+- Related feature modules: [features/](mdc:src/features)
+- Global navigation layout: [app/_layout.tsx](mdc:src/app/_layout.tsx)

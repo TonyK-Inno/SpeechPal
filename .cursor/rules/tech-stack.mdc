@@ -1,0 +1,32 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Technology Stack
+
+This project is built using the following modern mobile development technologies:
+
+## Core Technologies
+- **React Native:** The primary framework for building cross-platform mobile applications.
+- **TypeScript:** A superset of JavaScript that adds static typing, improving code quality and maintainability.
+- **Expo:** A framework and platform for universal React applications, enabling rapid development and simplified deployment.
+    - **Expo Go:** For easy development and testing on devices.
+
+## Navigation
+- **Expo Router:** A file-system based router for Expo and React Native. It simplifies navigation by mapping files to routes, providing a declarative way to manage application flow.
+    - Main navigation layout: [app/_layout.tsx](src/app/_layout.tsx).
+
+## Local Data Persistence
+- **Expo SQLite:** For structured, persistent storage of conversation history. Ideal for storing text, timestamps, and managing records.
+    - Related module: [features/history/storage/conversationDatabase.ts](src/features/history/storage/conversationDatabase.ts).
+- **MMKV (Mobile Key-Value Storage):** A high-performance, key-value stser settings (font size, e: [features/settings/storage/settingsStorage.ts](src/features/settings/storage/settingsStorage.ts).
+    - Global instance: [shared/utils/storage/mmkvInstance.ts](src/shar*Google Cloud Speech-to-Text APcurate, real-time speech-to-text transcription. Requires an internet connection and API key.
+    - Related module: [features/tpeechRecognitionService.ts](src/features/transcriptioecognitionService.ts).
+    - API key configuration: [config/index.ts](src/config/index.ts).
+
+## Other
+- **React Hooks:** Heavily utilized for managing component state and lifecycle, and encapsulating business logic ([features/*/hooks/](src/features/)).
+
+## File References
+- Main project configuration: [package.json](package.json)

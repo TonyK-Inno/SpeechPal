@@ -13,17 +13,39 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.silverun.SpeechPal",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app uses the microphone for speech recognition."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.silverun.SpeechPal",
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "scheme": "speechpal",
+    "extra": {
+      "eas": {
+        "projectId": "7fd14af9-6574-4284-8ada-09d98d67a5fd"
+      }
+    },
+    "plugins": [
+      "expo-speech-recognition",
+      "expo-sqlite"
+    ],
+    "jsEngine": "hermes",
+    "experimental": {
+      "newArchEnabled": true
     }
   }
 }
