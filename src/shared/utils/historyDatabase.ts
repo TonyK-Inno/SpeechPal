@@ -78,3 +78,8 @@ export async function getConversationById(
     phrases: JSON.parse(row.phrases),
   };
 }
+
+export async function deleteConversation(id: number): Promise<void> {
+  const db = await getDB();
+  await db.runAsync("DELETE FROM conversations WHERE id = ?", [id]);
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   TextInput,
+  Dimensions,
 } from "react-native";
 import {
   ExpoSpeechRecognitionModule,
@@ -26,6 +27,7 @@ import {
   initHistoryDB,
   addConversation,
 } from "../shared/utils/historyDatabase";
+import { TEST_CONVERSATION } from "../shared/constants/testConversation";
 
 export default function TranscriptionScreen() {
   const [transcript, setTranscript] = useState("");
@@ -36,6 +38,9 @@ export default function TranscriptionScreen() {
   const textSize: TextSize = useSettingsStore((s) => s.textSize);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [conversationName, setConversationName] = useState("");
+  const [isProtectionOn, setIsProtectionOn] = useState(false);
+  const lastTap = useRef(0);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useSpeechRecognitionEvent("result", (event) => {
     setTranscript(event.results[0].transcript);
@@ -57,6 +62,12 @@ export default function TranscriptionScreen() {
   useEffect(() => {
     initHistoryDB();
   }, []);
+
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [history, transcript]);
 
   const start = async () => {
     setIsLoading(true);
@@ -114,7 +125,14 @@ export default function TranscriptionScreen() {
   const clearHistory = () => setHistory([]);
 
   const saveConversation = async (name: string) => {
+    console.log(
+      "saveConversation called with name:",
+      name,
+      "history:",
+      history
+    );
     if (!history.length) {
+      console.log("Nothing to save, showing toast");
       Toast.show("Nothing to save!", {
         duration: Toast.durations.SHORT,
         position: Toast.positions.BOTTOM,
@@ -124,15 +142,18 @@ export default function TranscriptionScreen() {
       return;
     }
     try {
+      console.log("Calling addConversation");
       await addConversation(name, history);
-      setHistory([]);
+      console.log("addConversation finished");
       setSaveModalVisible(false);
       setConversationName("");
+      console.log("Showing success toast");
       Toast.show("Conversation saved!", {
         duration: Toast.durations.SHORT,
         position: Toast.positions.BOTTOM,
       });
     } catch (e) {
+      console.log("Error in saveConversation:", e);
       Toast.show("Failed to save conversation", {
         duration: Toast.durations.SHORT,
         position: Toast.positions.BOTTOM,
@@ -144,26 +165,33 @@ export default function TranscriptionScreen() {
     setSaveModalVisible(true);
   };
 
+  // Handler for lock/unlock (double tap)
+  const handleLockButton = async () => {
+    if (!isProtectionOn) {
+      if (isRecording) {
+        await stop();
+      }
+      setIsProtectionOn(true);
+    } else {
+      const now = Date.now();
+      if (now - lastTap.current < 400) {
+        setIsProtectionOn(false);
+      }
+      lastTap.current = now;
+    }
+  };
+
+  // Vignette overlay
+  const { width, height } = Dimensions.get("window");
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.clearButton}
-          onPress={clearHistory}
-          accessibilityLabel="Clear all history"
-        >
-          <Ionicons name="trash-outline" size={24} color="#888" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSavePress}
-          accessibilityLabel="Save conversation"
-        >
-          <Ionicons name="bookmark-outline" size={24} color="#007AFF" />
-        </TouchableOpacity>
+      <View style={styles.flexContainer}>
         <ScrollView
+          ref={scrollViewRef}
           style={styles.transcriptContainer}
           contentContainerStyle={styles.transcriptContent}
+          scrollEnabled={!isProtectionOn}
         >
           {history.map((phrase, idx) => (
             <React.Fragment key={idx}>
@@ -185,22 +213,63 @@ export default function TranscriptionScreen() {
             </View>
           ) : null}
         </ScrollView>
-        <TouchableOpacity
-          style={[styles.recordButton, isRecording && styles.recording]}
-          onPress={isRecording ? stop : start}
-          disabled={isLoading}
-          accessibilityLabel={
-            isRecording ? "Stop recording" : "Start recording"
-          }
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>
-              {isRecording ? "Stop" : "Record"}
-            </Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.bottomRow}>
+          <View style={styles.lockButtonContainer}>
+            <TouchableOpacity
+              style={[
+                styles.protectionButton,
+                isProtectionOn && styles.protectionButtonLocked,
+              ]}
+              onPress={handleLockButton}
+              disabled={isRecording}
+              accessibilityLabel={
+                isProtectionOn
+                  ? "Double tap to unlock"
+                  : "Activate screen protection"
+              }
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={isProtectionOn ? "lock-closed-outline" : "shield-outline"}
+                size={23}
+                color={isProtectionOn ? "#fff" : "#007AFF"}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.centerButtonsContainer}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={clearHistory}
+              accessibilityLabel="Clear all history"
+              disabled={isProtectionOn}
+            >
+              <Ionicons name="trash-outline" size={23} color="#888" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.recordButton, isRecording && styles.recording]}
+              onPress={isRecording ? stop : start}
+              disabled={isLoading || isProtectionOn}
+              accessibilityLabel={
+                isRecording ? "Stop recording" : "Start recording"
+              }
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Ionicons name="mic" size={29} color="#fff" />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleSavePress}
+              accessibilityLabel="Save conversation"
+              disabled={isProtectionOn}
+            >
+              <Ionicons name="bookmark-outline" size={23} color="#007AFF" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.rightSpacer} />
+        </View>
         {saveModalVisible && (
           <View style={styles.saveModalOverlay}>
             <View style={styles.saveModal}>
@@ -249,17 +318,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  container: {
+  flexContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: "column",
     backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    // padding: 16,
   },
   transcriptContainer: {
     flex: 1,
     width: "100%",
+    paddingHorizontal: "5%",
   },
   transcriptContent: {
     flexGrow: 1,
@@ -275,27 +342,42 @@ const styles = StyleSheet.create({
     width: "100%",
     alignSelf: "stretch",
   },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    borderWidth: 2,
+    borderColor: "rgba(21, 93, 97, 0.2)",
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  actionButton: {
+    backgroundColor: "#fff",
+    borderRadius: 19,
+    padding: 8,
+    marginHorizontal: 12,
+    elevation: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
   recordButton: {
-    position: "absolute",
-
-    bottom: 12,
     backgroundColor: "#007AFF",
-    borderRadius: 32,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
+    borderRadius: 29,
+    width: 58,
+    height: 58,
     alignItems: "center",
     justifyContent: "center",
     elevation: 2,
-    zIndex: 10,
-    minWidth: 120,
+    zIndex: 12,
   },
   recording: {
     backgroundColor: "#FF3B30",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
   },
   hr: {
     width: "100%",
@@ -303,20 +385,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     alignSelf: "center",
     marginVertical: 8,
-  },
-  clearButton: {
-    position: "absolute",
-    top: "25%",
-    right: 16,
-    zIndex: 20,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 4,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   placeholderContainer: {
     flex: 1,
@@ -331,20 +399,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontStyle: "italic",
     marginTop: 32,
-  },
-  saveButton: {
-    position: "absolute",
-    top: 24,
-    right: 56,
-    zIndex: 30,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 4,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   saveModalOverlay: {
     position: "absolute",
@@ -387,4 +441,35 @@ const styles = StyleSheet.create({
     marginRight: 24,
   },
   saveModalConfirm: {},
+  protectionButton: {
+    backgroundColor: "#fff",
+    borderRadius: 19,
+    padding: 8,
+    marginLeft: 8,
+    elevation: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    alignSelf: "center",
+  },
+  protectionButtonLocked: {
+    backgroundColor: "#FF3B30",
+  },
+  centerButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    alignItems: "center",
+  },
+  lockButtonContainer: {
+    width: 58,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rightSpacer: {
+    width: 58, // Same as lockButtonContainer
+  },
 });
